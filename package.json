@@ -1,0 +1,25 @@
+{
+  "name": "pokedex-cli",
+  "version": "1.0.0",
+  "main": "cli.js",
+  "bin": {
+    "dex": "cli.js"
+  },
+  "repository": "https://github.com/fbosch/pokedex-cli.git",
+  "author": "fbosch <frede.bosch@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "blessed-contrib": "^4.8.5",
+    "got": "^8.0.3",
+    "meow": "^4.0.0",
+    "string.prototype.padstart": "^3.0.0",
+    "titleize": "^1.0.0"
+  },
+  "keywords": [
+    "cli-app",
+    "cli",
+    "pokemon",
+    "pokedex"
+  ]
+}
