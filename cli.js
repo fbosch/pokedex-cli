@@ -21,6 +21,6 @@ if (input.length === 0) {
   process.exit(1)
 }
 
-pokedex(input[0])
+pokedex(input.join("-"))
 
 

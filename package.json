@@ -11,6 +11,8 @@
   "dependencies": {
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.5",
+    "chalk": "^2.3.0",
+    "figlet": "^1.2.0",
     "got": "^8.0.3",
     "meow": "^4.0.0",
     "string.prototype.padstart": "^3.0.0",
