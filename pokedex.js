@@ -2,38 +2,27 @@ const got = require("got")
 const blessed = require("blessed")
 const padStart = require("string.prototype.padstart")
 const titleize = require("titleize")
-const figlet = require("figlet")
 const chalk = require("chalk")
-const { typeColorMap, statColorMap } = require("./color-maps")
+const startCase = require("lodash.startcase")
+const { typeColorMap, statColorMap, statLabelMap } = require("./maps")
+const { getTypeWeaknesses } = require("./pokemon-types")
 
+const padding = 1
 
-function request(input) {
-  return got("http://pokeapi.co/api/v2/pokemon/" + input.toLowerCase(), { timeout: 10000, json: true })
-    .then(response => response.body)
-    .catch(err => {
-      throw err
-    })
-}
+const nationalDexNumber = id => padStart(id, 3, "0")
+
+const request = input => got("http://pokeapi.co/api/v2/pokemon/" + input.toLowerCase(), { timeout: 10000, json: true })
+  .then(response => response.body)
+  .catch(err => {
+    throw err
+  })
 
 const generateTypeLabels = types => types.map(({ type }) => chalk.bold.bgHex(typeColorMap[type.name])(" " + titleize(type.name) + " ")).join("  ")
 
-function output(pokemon) {
-  const padding = 1
-  const maxBaseStat = 270
-  const nationalDexNumber = padStart(pokemon.id, 3, "0")
-  const screen = blessed.screen({ dockBorders: true })
-
-  const dexEntryBox = blessed.box({
-    parent: screen,
-    height: "50%",
-    width: "95%",
-    left: "center",
-    top: "center"
-  })
-
-  const spriteBox = blessed.box({
+const sprite = pokemon => {
+  const box = blessed.box({
     top: "left",
-    label: `Pokédex - #${nationalDexNumber}`,
+    label: ` ${chalk.bold.blue("⬤")}  ${chalk.bold.red("●")} ${chalk.bold.yellow("●")} ${chalk.bold.green("●")} `,
     width: "40%",
     height: "100%",
     border: {
@@ -42,61 +31,41 @@ function output(pokemon) {
     style: {
       bg: typeColorMap[pokemon.types[0].type.name],
       border: {
-        fg: "#f0f0f0"
+        fg: "#f00"
       }
     }
   })
-
-  const sprite = blessed.image({
-    parent: spriteBox,
-    file: `https://www.serebii.net/pokedex-sm/icon/${nationalDexNumber}.png`,
+  blessed.image({
+    parent: box,
+    autoPadding: true,
+    file: `https://www.serebii.net/pokedex-sm/icon/${nationalDexNumber(pokemon.id)}.png`,
     width: 32,
     top: "center",
     left: "center"
   })
+  return box
+}
 
-  dexEntryBox.append(spriteBox)
-
-  const descriptionBox = blessed.box({
-    parent: dexEntryBox,
-    content: `
-  Name:  ${chalk.bold(titleize(pokemon.name))}
-
-  Type:  ${generateTypeLabels(pokemon.types)}
-    `,
-    width: "60%",
-    height: "100%",
-    top: "right",
-    right: 0,
-    border: {
-      type: "line"
-    },
-    style: {
-      border: {
-        fg: "#f0f0f0"
-      }
-    }
-  })
-
-  const statsBox = blessed.box({
+const stats = pokemon => {
+  const maxBaseStat = 270
+  const box = blessed.box({
     label: "Stats",
-    parent: descriptionBox,
-    height: "43%",
-    width: "50%",
-    top: "20%",
+    height: 15,
+    width: "50%-2",
+    top: 9,
     left: padding,
     border: {
       type: "line"
     },
     style: {
       border: {
-        fg: "#f0f0f0"
+        fg: "#888"
       }
     }
   })
 
   const statsDisplay = blessed.box({
-    parent: statsBox,
+    parent: box,
     height: "80%",
     width: "96%",
     top: padding
@@ -106,7 +75,7 @@ function output(pokemon) {
     const statContainer = blessed.box({
       parent: statsDisplay,
       width: `100%-${padding}`,
-      label: stat.stat.name,
+      label: statLabelMap[stat.stat.name],
       top: (2 * index),
       height: "12%",
       style: {
@@ -115,30 +84,113 @@ function output(pokemon) {
     })
     blessed.progressbar({
       parent: statContainer,
-      content: stat.base_stat.toString(),
+      content: " " + stat.base_stat.toString(),
       orientation: "horizontal",
-      width: "50%",
-      left: "50%",
+      width: "60%",
+      left: "40%",
       filled: Math.floor((stat.base_stat / maxBaseStat) * 100),
       style: {
         fg: "#fff",
-        bg: "#ccc",
+        bg: "#222",
         bar: {
           fg: "#fff",
           bg: statColorMap[stat.stat.name]
         }
       }
     })
+    return statContainer
   })
 
-  dexEntryBox.append(descriptionBox)
+  return box
+}
 
-
-
-  screen.key(['escape', 'q', 'C-c'], function (ch, key) {
-    return process.exit(0);
+const weaknesses = pokemon => {
+  const box = blessed.box({
+    label: "Damage Taken",
+    height: 15,
+    right: padding,
+    top: 9,
+    width: "50%-1",
+    border: {
+      type: "line"
+    },
+    style: {
+      border: {
+        fg: "#888"
+      }
+    }
   })
 
+  const pokemonWeaknesses = getTypeWeaknesses(pokemon.types[0].type.name)
+
+  return box
+}
+
+const description = pokemon => {
+  const box = blessed.box({
+    width: "60%",
+    height: "100%",
+    top: "right",
+    right: 0,
+    border: {
+      type: "line"
+    },
+    style: {
+      border: {
+        fg: "#f00"
+      }
+    }
+  })
+
+  blessed.box({
+    parent: box,
+    content: `
+    Name:           ${chalk.bold(titleize(pokemon.name))}
+
+    Type:           ${generateTypeLabels(pokemon.types)}
+
+    Abilities:      ${pokemon.abilities.map(({ ability }) => startCase(ability.name)).join(", ")}
+      `,
+    width: "50%",
+    top: "left",
+    left: 0,
+  })
+
+  blessed.box({
+    parent: box,
+    content: `
+  National Dex:     #${chalk.bold(nationalDexNumber(pokemon.id))}
+
+  Weight:           ${chalk.bold(pokemon.weight / 10) + " kg"}
+
+  Height:           ${chalk.bold(pokemon.height / 10) + " m"}
+      `,
+    width: "50%",
+    top: "right",
+    right: 0,
+  })
+
+  box.append(stats(pokemon))
+  box.append(weaknesses(pokemon))
+
+  return box
+}
+
+function output(pokemon) {
+  const screen = blessed.screen({ dockBorders: true })
+
+  const entry = blessed.box({
+    parent: screen,
+    height: 35,
+    width: "95%",
+    left: "center",
+    top: "center"
+  })
+
+  entry.append(sprite(pokemon))
+  entry.append(description(pokemon))
+
+  screen.key(['escape', 'q', 'C-c'], () => process.exit(0))
   screen.render()
 }
 
