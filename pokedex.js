@@ -1,25 +1,39 @@
 const got = require("got")
+const pokemon = require("pokemon")
 const blessed = require("blessed")
 const padStart = require("string.prototype.padstart")
 const titleize = require("titleize")
 const chalk = require("chalk")
 const startCase = require("lodash.startcase")
 const { typeColorMap, statColorMap, statLabelMap } = require("./maps")
+const http = require("http")
 const { getTypeWeaknesses } = require("./pokemon-types")
+const storage = require("node-persist")
+const cache = storage.create({ dir: "cache/" })
+cache.initSync()
+
+const getPokemon = input => {
+  const id = /^\d+$/.test(input) ? input : pokemon.getId(startCase(input), 'en')
+  return cache.get(id).then(cachedPokemon => {
+    if (cachedPokemon) {
+      return cachedPokemon
+    }
+    return got("http://www.pokeapi.co/api/v2/pokemon/" + input.toLowerCase(), { json: true })
+      .then(response => {
+        cache.set(id, response.body)
+        return response.body
+      })
+  })
+}
+
 
 const padding = 1
 
 const nationalDexNumber = id => padStart(id, 3, "0")
+const generateTypeLabel = type => chalk.bold.bgHex(typeColorMap[type])(` ${titleize(type)} `)
+const generateTypeLabels = types => types.map(({ type }) => generateTypeLabel(type.name)).join("  ")
 
-const request = input => got("http://pokeapi.co/api/v2/pokemon/" + input.toLowerCase(), { timeout: 10000, json: true })
-  .then(response => response.body)
-  .catch(err => {
-    throw err
-  })
-
-const generateTypeLabels = types => types.map(({ type }) => chalk.bold.bgHex(typeColorMap[type.name])(" " + titleize(type.name) + " ")).join("  ")
-
-const sprite = pokemon => {
+const spriteDisplay = pokemon => {
   const box = blessed.box({
     top: "left",
     label: ` ${chalk.bold.blue("⬤")}  ${chalk.bold.red("●")} ${chalk.bold.yellow("●")} ${chalk.bold.green("●")} `,
@@ -46,13 +60,13 @@ const sprite = pokemon => {
   return box
 }
 
-const stats = pokemon => {
+const statsDisplay = pokemon => {
   const maxBaseStat = 270
   const box = blessed.box({
     label: "Stats",
     height: 15,
     width: "50%-2",
-    top: 9,
+    top: 8,
     left: padding,
     border: {
       type: "line"
@@ -64,16 +78,16 @@ const stats = pokemon => {
     }
   })
 
-  const statsDisplay = blessed.box({
+  const container = blessed.box({
     parent: box,
     height: "80%",
     width: "96%",
     top: padding
   })
 
-  pokemon.stats.reverse().map((stat, index) => {
+  pokemon.stats.reverse().forEach((stat, index) => {
     const statContainer = blessed.box({
-      parent: statsDisplay,
+      parent: container,
       width: `100%-${padding}`,
       label: statLabelMap[stat.stat.name],
       top: (2 * index),
@@ -98,18 +112,39 @@ const stats = pokemon => {
         }
       }
     })
-    return statContainer
   })
 
   return box
 }
 
-const weaknesses = pokemon => {
+const weaknessesDisplay = pokemon => {
+
+  const pokemonWeaknesses = getTypeWeaknesses(pokemon.types[0].type.name)
+  const weaknesses = Object.keys(pokemonWeaknesses).reduce((accum, type) => {
+    const value = pokemonWeaknesses[type]
+    switch (value) {
+      case 0: {
+        accum.noEffect.push({ type, value })
+        break;
+      }
+      case 0.5: {
+        accum.notVeryEffective.push({ type, value })
+        break;
+      }
+      case 2: {
+        accum.superEffective.push({ type, value })
+        break;
+      }
+    }
+    return accum
+  }, { superEffective: [], notVeryEffective: [], noEffect: [] })
+
+
   const box = blessed.box({
     label: "Damage Taken",
     height: 15,
     right: padding,
-    top: 9,
+    top: 8,
     width: "50%-1",
     border: {
       type: "line"
@@ -121,12 +156,29 @@ const weaknesses = pokemon => {
     }
   })
 
-  const pokemonWeaknesses = getTypeWeaknesses(pokemon.types[0].type.name)
+  const generateWeaknessLabel = weakness => `
+   ${chalk.bold(weakness.value)} × ${generateTypeLabel(weakness.type)}
+  `
+
+  weaknesses.superEffective
+    .forEach((weakness, index) => blessed.text({
+      parent: box,
+      content: generateWeaknessLabel(weakness),
+      top: (2 * index)
+    }))
+
+  weaknesses.noEffect.concat(weaknesses.notVeryEffective)
+    .forEach((weakness, index) => blessed.text({
+      parent: box,
+      content: generateWeaknessLabel(weakness),
+      top: (2 * index),
+      left: weaknesses.superEffective.length > 0 ? "50%" : "0"
+    }))
 
   return box
 }
 
-const description = pokemon => {
+const descriptionDisplay = pokemon => {
   const box = blessed.box({
     width: "60%",
     height: "100%",
@@ -159,19 +211,19 @@ const description = pokemon => {
   blessed.box({
     parent: box,
     content: `
-  National Dex:     #${chalk.bold(nationalDexNumber(pokemon.id))}
+    National Dex:     #${chalk.bold(nationalDexNumber(pokemon.id))}
 
-  Weight:           ${chalk.bold(pokemon.weight / 10) + " kg"}
+    Weight:           ${chalk.bold(pokemon.weight / 10) + " kg"}
 
-  Height:           ${chalk.bold(pokemon.height / 10) + " m"}
+    Height:           ${chalk.bold(pokemon.height / 10) + " m"}
       `,
     width: "50%",
     top: "right",
     right: 0,
   })
 
-  box.append(stats(pokemon))
-  box.append(weaknesses(pokemon))
+  box.append(statsDisplay(pokemon))
+  box.append(weaknessesDisplay(pokemon))
 
   return box
 }
@@ -187,8 +239,8 @@ function output(pokemon) {
     top: "center"
   })
 
-  entry.append(sprite(pokemon))
-  entry.append(description(pokemon))
+  entry.append(spriteDisplay(pokemon))
+  entry.append(descriptionDisplay(pokemon))
 
   screen.key(['escape', 'q', 'C-c'], () => process.exit(0))
   screen.render()
@@ -198,5 +250,5 @@ module.exports = input => {
   if (!(typeof input === "string" && input.length !== 0)) {
     return Promise.reject(new Error("Specify pokémon name or pokédex number"))
   }
-  return request(input).then(output)
+  return getPokemon(input).then(output)
 }
