@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 'use strict'
 const meow = require("meow")
-const pokedex = require("./pokedex")
 const pokemon = require("pokemon")
+const pokedex = require("./lib")
 
 const cli = meow(`
 	Usage
