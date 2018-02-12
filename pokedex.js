@@ -13,19 +13,16 @@ const cache = storage.create({ dir: "cache/" })
 cache.initSync()
 
 const getPokemon = input => {
-  const id = /^\d+$/.test(input) ? input : pokemon.getId(startCase(input), 'en')
+  const id = /^\d+$/.test(input) ? input : pokemon.getId(startCase(input)).toString()
   return cache.get(id).then(cachedPokemon => {
-    if (cachedPokemon) {
-      return cachedPokemon
-    }
-    return got("http://www.pokeapi.co/api/v2/pokemon/" + input.toLowerCase(), { json: true })
+    if (cachedPokemon !== undefined) return cachedPokemon
+    return got("http://www.pokeapi.co/api/v2/pokemon/" + id, { timeout: 20000, json: true })
       .then(response => {
         cache.set(id, response.body)
         return response.body
       })
   })
 }
-
 
 const padding = 1
 
