@@ -13,6 +13,6 @@ const cli = meow(`
 	$ dex charmander
 `, { string: [''] })
 
-const input = cli.input.join("-")
+const input = cli.input.join(" ")
 
 pokedex(input.length === 0 ? pokemon.random() : input)
