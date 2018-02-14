@@ -4,7 +4,13 @@
 	"main": "./cli.js",
 	"bin": {
 		"dex": "./cli.js"
+  },
+  "engines": {
+		"node": ">=4"
 	},
+  "files": [
+		"cli.js"
+	],
 	"repository": "https://github.com/fbosch/pokedex-cli.git",
 	"author": "fbosch <frede.bosch@gmail.com>",
 	"license": "MIT",
