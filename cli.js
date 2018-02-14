@@ -11,13 +11,8 @@ const cli = meow(`
 	Examples
 	$ dex 001
 	$ dex charmander
-`, { string: ['_'] })
+`, { string: [''] })
 
 const input = cli.input.join("-")
 
-if (input.length === 0) {
-  console.error("Specify pokémon name or pokédex number")
-  process.exit(1)
-}
-
-pokedex(input === "random" ? pokemon.random() : input)
+pokedex(input.length === 0 ? pokemon.random() : input)
