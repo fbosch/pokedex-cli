@@ -24,6 +24,7 @@
     "blessed-contrib": "^4.8.5",
     "chalk": "^2.3.0",
     "cli-truncate": "^1.1.0",
+    "closest-to": "^2.0.0",
     "got": "^8.1.0",
     "lodash.chunk": "^4.2.0",
     "lodash.inrange": "^3.3.6",
@@ -48,8 +49,6 @@
   ],
   "devDependencies": {
     "ava": "^0.25.0",
-    "babel-eslint": "^8.2.1",
-    "debug": "^3.1.0",
     "standard": "^10.0.3"
   }
 }
