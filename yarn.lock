@@ -3237,6 +3237,10 @@ png-js@~0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/png-js/-/png-js-0.1.1.tgz#1cc7c212303acabe74263ec3ac78009580242d93"
 
+poke-types@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/poke-types/-/poke-types-1.0.6.tgz#aeea600abcff183a21c5779ba1e930e06f27c304"
+
 pokemon@^1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/pokemon/-/pokemon-1.2.2.tgz#38ba38e84d0ca7884cafa3b62aef417bd526a0c9"
