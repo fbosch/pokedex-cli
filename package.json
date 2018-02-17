@@ -40,7 +40,7 @@
     "titleize": "^1.0.0"
   },
   "scripts": {
-    "test": "standard && ava"
+    "test": "standard"
   },
   "keywords": [
     "cli-app",
@@ -49,7 +49,6 @@
     "pokedex"
   ],
   "devDependencies": {
-    "ava": "^0.25.0",
     "standard": "^10.0.3"
   }
 }
