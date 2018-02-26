@@ -37,10 +37,13 @@
     "pokemon": "^1.2.2",
     "random-item": "^1.0.0",
     "string.prototype.padstart": "^3.0.0",
-    "titleize": "^1.0.0"
+    "titleize": "^1.0.0",
+    "snyk": "^1.69.9"
   },
   "scripts": {
-    "test": "standard"
+    "test": "standard",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "keywords": [
     "cli-app",
@@ -50,5 +53,6 @@
   ],
   "devDependencies": {
     "standard": "^10.0.3"
-  }
+  },
+  "snyk": true
 }
