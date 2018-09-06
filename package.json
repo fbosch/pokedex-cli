@@ -30,7 +30,7 @@
     "lodash.inrange": "^3.3.6",
     "lodash.startcase": "^4.4.0",
     "lodash.truncate": "^4.4.2",
-    "mem": "^3.0.0",
+    "mem": "^4.0.0",
     "meow": "^4.0.0",
     "node-persist": "^2.1.0",
     "poke-types": "^1.0.6",
