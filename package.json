@@ -31,7 +31,7 @@
     "lodash.startcase": "^4.4.0",
     "lodash.truncate": "^4.4.2",
     "mem": "4.0.0",
-    "meow": "^6.0.0",
+    "meow": "^6.1.0",
     "node-persist": "^2.1.0",
     "poke-types": "^1.0.22",
     "pokemon": "^2.0.2",
