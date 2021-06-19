@@ -21,7 +21,7 @@
   "dependencies": {
     "auto-bind": "^4.0.0",
     "blessed": "^0.1.81",
-    "blessed-contrib": "^4.8.18",
+    "blessed-contrib": "^4.9.0",
     "chalk": "^3.0.0",
     "cli-truncate": "^2.1.0",
     "closest-to": "^2.0.0",
