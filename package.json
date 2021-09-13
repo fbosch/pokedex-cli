@@ -23,7 +23,7 @@
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.18",
     "chalk": "^3.0.0",
-    "cli-truncate": "^2.1.0",
+    "cli-truncate": "^3.0.0",
     "closest-to": "^2.0.0",
     "got": "^10.2.1",
     "lodash.chunk": "^4.2.0",
@@ -36,7 +36,7 @@
     "poke-types": "^1.0.22",
     "pokemon": "^2.0.2",
     "random-item": "^3.0.0",
-    "snyk": "^1.88.2",
+    "snyk": "^1.685.0",
     "string.prototype.padstart": "^3.1.0",
     "titleize": "^2.1.0"
   },
